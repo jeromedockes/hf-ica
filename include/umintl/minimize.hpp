@@ -8,6 +8,7 @@
 
 #ifndef UMINTL_MINIMIZE_HPP_
 #define UMINTL_MINIMIZE_HPP_
+#include <cmath>
 
 #include "umintl/optimization_result.hpp"
 
@@ -140,8 +141,8 @@ namespace umintl{
         }
 
     public:
-        template<class Fun>
-        optimization_result operator()(typename BackendType::VectorType & res, Fun & fun, typename BackendType::VectorType const & x0, size_t N){
+      template<class Fun, typename Trace_type>
+      optimization_result operator()(typename BackendType::VectorType & res, Fun & fun, typename BackendType::VectorType const & x0, size_t N, Trace_type trace){
 
             tools::shared_ptr<umintl::direction<BackendType> > steepest_descent(new umintl::steepest_descent<BackendType>());
             line_search_result<BackendType> search_res(N);
@@ -158,6 +159,7 @@ namespace umintl{
             //Main loop
             c.fun().compute_value_gradient(c.x(), c.val(), c.g(), c.model().get_value_gradient_tag());
             for( ; c.iter() < iter ; ++c.iter()){
+              trace(c.iter(), c.x(), std::sqrt(N), std::sqrt(N));
                 if(verbose >= 1 ){
                     IosFlagSaver flags_saver(std::cout);
                     std::cout << "Iteration " << std::setw(4) << c.iter()
